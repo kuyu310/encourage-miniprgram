@@ -1,0 +1,117 @@
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+import { login } from '@/api'
+
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/unregistered',
+      'pages/chooseAccount',
+      'pages/auth',
+
+      'pages/rank/index',
+      'pages/wanted/index',
+      'pages/wanted/collect',
+      'pages/wanted/detail',
+      'pages/PK/index',
+      'pages/PK/start',
+      'pages/PK/share',
+      'pages/PK/letter',
+      'pages/PK/detail'
+    ],
+    window: {
+      backgroundTextStyle: 'light',
+      navigationBarBackgroundColor: '#fff',
+      navigationBarTitleText: '激励小程序',
+      navigationBarTextStyle: 'black'
+    },
+    tabBar: {
+      list: [{
+        pagePath: 'pages/rank/index',
+        text: '排行榜',
+        iconPath: 'images/tb-rank.png',
+        selectedIconPath: 'images/tb-rank-sel.png'
+      }, {
+        pagePath: 'pages/wanted/index',
+        text: '悬赏榜',
+        iconPath: 'images/tb-wanted.png',
+        selectedIconPath: 'images/tb-wanted-sel.png'
+      }, {
+        pagePath: 'pages/PK/index',
+        text: 'PK榜',
+        iconPath: 'images/tb-pk.png',
+        selectedIconPath: 'images/tb-pk-sel.png'
+      }]
+    },
+    networkTimeout: {
+      request: 10 * 1000
+    }
+  }
+
+  globalData = {
+    process: '',
+    openId: '',
+    isHide: false,
+    accounts: [] // 用户公众号列表
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+  }
+
+  async init(option) {
+    const wLoginRes = await wepy.login()
+    const res = await login({ code: wLoginRes.code })
+    if (res && res.datas) {
+      const { appletOpenId: openId, status, list, userId } = res.datas || {}
+      this.globalData.openId = openId
+      this.globalData.accounts = list
+      if (status === 1) { // 选公众号
+        wepy.redirectTo({ url: '/pages/chooseAccount?show=1' })
+        await Promise.reject(new Error('未选择公众号'))
+      } else if (status === 2) { // 未注册
+        wepy.redirectTo({ url: '/pages/unregistered?show=1' })
+        await Promise.reject(new Error('未注册'))
+      } else { // 已绑定
+        let path = option.path
+        wepy.setStorageSync('userId', userId)
+        if (
+          path === 'pages/rank/index' ||
+          path === 'pages/wanted/index' ||
+          path === 'pages/PK/index'
+        ) {
+          wepy.switchTab({ url: `/${path}` })
+        }
+        if (
+          path === 'pages/unregistered' ||
+          path === ''
+        ) {
+          wepy.switchTab({ url: '/pages/rank/index' })
+        }
+        return ''
+      }
+    }
+  }
+
+  onLaunch(option) {
+    this.globalData.process = this.init(option)
+  }
+  onShow(option) {
+    const userId = wepy.getStorageSync('userId')
+    if (this.globalData.isHide || !userId) {
+      this.globalData.isHide = false
+      this.globalData.process = this.init(option)
+    }
+  }
+  onHide() {
+    this.globalData.isHide = true
+  }
+}
+</script>
+
+<style lang="scss">
+@import './app.scss';
+</style>

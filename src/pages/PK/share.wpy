@@ -1,0 +1,48 @@
+<template>
+  <view class="p-share">
+    <image src="/images/share.jpg" class="c-w-100 img" />
+    <button
+      wx:if="{{pkId.length}}"
+      class="c-btn-blue c-mt-40 c-mlr-40"
+      open-type="share"
+      formType="submit">点我分享
+    </button>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { alert } from '@/shared/tip'
+
+export default class Share extends wepy.page {
+  data = {
+    pkId: ''
+  }
+  onLoad(options) {
+    this.pkId = options.pkId || ''
+    if (!this.pkId.length) alert('亲，请传入pkId')
+  }
+  onShareAppMessage (res) {
+    console.log('分享数据', res)
+    return {
+      title: '擂台已摆好，谁来应战',
+      path: `/pages/PK/letter?pkId=${this.pkId}`,
+      success(res) {
+        console.log('分享成功', res)
+      },
+      fail(res) {
+        console.log('分享失败', res)
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss">
+.p-share {
+  .img {
+    height: 80vw;
+  }
+}
+
+</style>

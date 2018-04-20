@@ -1,0 +1,370 @@
+$position: ( t: top, r: right, b: bottom, l: left);
+$box: ( p: padding, m: margin);
+$colors: ( 
+  000: #000, 333: #333, 666: #666, 999: #999, 
+  aaa: #aaa, bbb: #bbb, ccc: #ccc , ddd: #ddd, eee: #eee, fff: #fff, 
+blue: #6391F6, bluegray: #C3D0E6, pink: #dc74a5, lightWhite: #f7f7f7);
+.c-bs-b {
+  box-sizing: border-box;
+}
+
+// text-align
+.c-ta-c {
+  text-align: center;
+}
+
+.c-ta-l {
+  text-align: left;
+}
+
+.c-ta-r {
+  text-align: right;
+}
+
+// font-weight
+.c-fw-b {
+  font-weight: bold;
+}
+
+.c-fw-n {
+  font-weight: normal;
+}
+
+// color, background-color
+// .c-[ c | bc ]-[ 000 | 333 | 666 | 999 | fff ]
+@each $cName, $cValue in $colors {
+  .c-c-#{$cName} {
+    color: $cValue;
+  }
+  .c-bc-#{$cName} {
+    background-color: $cValue;
+  }
+}
+
+// font-size
+// .c-fs-[ 20 | 24 | 28 | ...... | 60 ]
+@for $i from 5 through 15 {
+  .c-fs-#{$i * 4} {
+    font-size: 4rpx * $i;
+  }
+}
+
+// height
+// .c-h-[ 20 | 24 | 28 | ...... | 80 ]
+@for $i from 5 through 20 {
+  .c-h-#{$i * 4} {
+    height: 4rpx * $i;
+  }
+}
+
+.c-h-100 {
+  height: 100%;
+}
+
+.c-h-100v {
+  height: 100vh;
+}
+
+// line-height
+// .c-lh-[20 | 24 | 28 | ...... | 80 ]
+@for $i from 5 through 20 {
+  .c-lh-#{$i * 4} {
+    line-height: 4rpx * $i;
+  }
+}
+
+.c-w-100 {
+  width: 100%;
+}
+
+.c-w-100v {
+  width: 100vw;
+}
+
+.c-w-a {
+  width: auto;
+}
+
+// margin, padding
+// .c-[ m | p ]
+// .c-[ m | p ]-[ 4 | 8 | 12 | ...... | 80 ]
+// .c-[ (m | p) + (t | r | b | l | lr | tb) ]
+// .c-[ (m | p) + (t | r | b | l | lr | tb) ]-[ 4 | 8 | 12 | ...... | 80 ]
+$baseSize: 20;
+@for $i from 1 through 20 {
+  @each $bShort, $bLong in $box {
+    @each $pShort, $pLong in $position {
+      .c-#{$bShort + $pShort}-#{$i * 4} {
+        #{$bLong}-#{$pLong}: 4rpx * $i;
+      }
+      .c-#{$bShort + $pShort} {
+        @extend .c-#{$bShort + $pShort}-#{$baseSize};
+      }
+    }
+    .c-#{$bShort + lr}-#{$i * 4} {
+      @extend .c-#{$bShort + l}-#{$i * 4};
+      @extend .c-#{$bShort + r}-#{$i * 4};
+    }
+    .c-#{$bShort + lr} {
+      @extend .c-#{$bShort + lr}-#{$baseSize};
+    }
+    .c-#{$bShort + tb}-#{$i * 4} {
+      @extend .c-#{$bShort + t}-#{$i * 4};
+      @extend .c-#{$bShort + b}-#{$i * 4};
+    }
+    .c-#{$bShort + tb} {
+      @extend .c-#{$bShort + tb}-#{$baseSize};
+    }
+    .c-#{$bShort}-#{$i * 4} {
+      @extend .c-#{$bShort + lr}-#{$i * 4};
+      @extend .c-#{$bShort + tb}-#{$i * 4};
+    }
+    .c-#{$bShort} {
+      @extend .c-#{$bShort}-#{$baseSize};
+    }
+  }
+}
+
+.c-br {
+  border-radius: 8rpx;
+}
+
+.c-br-50 {
+  border-radius: 50%;
+}
+
+// border
+.c-bw-2 {
+  border-width: 2rpx;
+}
+
+.c-b {
+  border-style: solid;
+  border-color: #eee;
+  @extend .c-bw-2;
+}
+
+// .c-b-[ t | r | b | l ]
+@each $pShort, $pLong in $position {
+  .c-b-#{$pShort} {
+    border-#{$pLong}-style: solid;
+    border-#{$pLong}-color: #eee;
+    @extend .c-bw-2;
+  }
+}
+//- border end -//
+
+.c-o-h {
+  overflow: hidden;
+}
+
+.c-eps {
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  @extend .c-o-h;
+}
+
+// 箭头
+.aw-base {
+  width: 16rpx;
+  height: 16rpx;
+  border-top: {
+    width: 4rpx;
+    style: solid;
+    color: rgb(211, 214, 218);
+  }
+  border-right: {
+    width: 4rpx;
+    style: solid;
+    color: rgb(211, 214, 218);
+  }
+}
+
+// .c-aw-[ t | r | b | l ]
+$_arc: -45;
+@each $pShort, $pLong in $position {
+  .c-aw-#{$pShort} {
+    @extend .aw-base;
+    transform: rotate($_arc + deg);    
+  }
+  $_arc: $_arc + 90;
+}
+//- 箭头 end -//
+
+
+// flex
+.c-d-f {
+  display: flex;
+}
+
+.c-f-1 {
+  flex: 1;
+}
+
+.c-fd-c {
+  flex-direction: column;
+}
+
+.c-f-a {
+  flex: 0 0 auto;
+}
+
+.c-jc-sb {
+  justify-content: space-between;
+}
+
+.c-jc-c {
+  justify-content: center;
+}
+
+.c-jc-fs {
+  justify-content: flex-start;
+}
+
+.c-jc-fe {
+  justify-content: flex-end
+}
+
+.c-ai-c {
+  align-items: center;
+}
+
+.c-flex {
+  @extend .c-d-f;
+  @extend .c-jc-sb;
+  @extend .c-ai-c;
+}
+
+.c-flex-col {
+  @extend .c-d-f;
+  @extend .c-fd-c;
+}
+
+.c-flex-child-center {
+  @extend .c-d-f;
+  @extend .c-ai-c;
+  @extend .c-jc-c;
+}
+//- flex end -//
+
+// display
+.c-d-b {
+  display: block;
+}
+
+.c-d-i {
+  display: inline;
+}
+
+.c-d-ib {
+  display: inline-block;
+}
+//- display end -//
+
+// position
+.c-p-r {
+  position: relative;
+}
+
+.c-p-a {
+  position: absolute;
+}
+
+.c-p-f {
+  position: fixed;
+}
+
+.c-p-abs {
+  @extend .c-p-a;
+  left: 0;
+  top: 0;
+}
+//- position end -//
+
+// z-index
+// .c-zi-[ a | -1 | 0 | 1 | 2 | 3 | 10 ]
+$zIndex: (a: auto, -1: -1, 0: 0, 1: 1, 2: 2, 3: 3, 10: 10);
+@each $zShort, $zLong in $zIndex {
+  .c-zi-#{$zShort} {
+    z-index: #{$zLong}
+  }
+}
+//- z-index end -//
+
+view {
+  @extend .c-fs-32;
+  @extend .c-c-666;
+  @extend .c-bs-b;
+}
+
+page {
+  background: #f5f5f5;
+  @extend .c-bs-b;
+}
+
+.c-container {
+  @extend .c-p-r;
+  background: #fff;
+}
+
+.c-no-data {
+  @extend .c-fs-40;
+  @extend .c-ta-c;
+  @extend .c-pt-20;
+  color: #8b8b8b;
+}
+
+.c-mlr-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.c-ipt {
+  height: 64rpx;
+  background-color: transparent;
+  font-size: inherit;
+  color: inherit;
+}
+
+.c-btn {
+  @extend .c-fs-32;
+  @extend .c-lh-80;
+  @extend .c-br;
+  @extend .c-ta-c;
+}
+
+.c-btn-blue {
+  @extend .c-btn;
+  @extend .c-c-fff;
+  @extend .c-bc-blue;
+  // background-color: map-get($colors, blue);
+}
+
+.c-btn-bluegray {
+  @extend .c-btn;
+  @extend .c-c-fff;
+  @extend .c-bc-bluegray;
+}
+
+.c-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99;
+  background: rgba(0, 0, 0, .5);
+}
+
+.c-bi-common {
+  background: {
+    position: center;
+    size: cover;
+    repeat: no-repeat;
+  }
+}
+
+.c-bs {
+  box-shadow: 0 20rpx 25rpx rgba(0, 0, 0, .05)
+}

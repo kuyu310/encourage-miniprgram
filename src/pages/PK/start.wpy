@@ -1,0 +1,120 @@
+<template>
+  <view class="c-p p-pkStart c-bc-fff">
+    <form @submit="submit">
+      <view class="c-mb">请选择一项挑战内容</view>
+      <radio-group @change="cBindinput('selRule')">
+        <label 
+          class="c-d-b c-mb" 
+          wx:for="{{rules}}" 
+          wx:key="{{item.value}}">
+          <radio 
+            value="{{item.value}}" 
+            checked="{{item.checked}}" 
+            color="#6391F6" />{{item.name}}
+        </label>
+      </radio-group>
+
+      <view class="c-mb">挑战起止时间：</view>
+      <view class="c-d-f c-ai-c c-mb">
+        <picker 
+          mode="date"
+          start="{{minTime}}"
+          @change="cBindinput('start')">
+          <view class="c-bc-lightWhite c-br c-p c-flex">
+            <view class="date">{{start || '请选择'}}</view>
+           <view class="c-aw-b"></view>
+          </view>          
+        </picker>
+        <text class="line c-bc-999 c-d-b c-mlr"></text>
+        <picker 
+          mode="date" 
+          @change="cBindinput('end')">
+          <view class="c-bc-lightWhite c-br c-p c-flex">
+            <view class="date">{{end || '请选择'}}</view>
+           <view class="c-aw-b"></view>
+          </view>
+        </picker>
+      </view>
+
+      <view class="c-mb">来点奖励刺激下TA吧：</view>
+      <textarea 
+        class="c-br c-w-a c-bc-lightWhite c-p" 
+        placeholder="请输入挑战宣言"
+        maxlength="100"
+        @input="cBindinput('content')">
+      </textarea>
+
+      <button 
+        class="c-btn-blue c-mt-40"
+        formType="submit">向好友发起PK
+      </button>
+    </form>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Bindinput from '@/mixins/bindinput'
+import { alert } from '@/shared/tip'
+import { dateFormat } from '@/shared/util'
+import { pkRule, pkStart } from '@/api'
+
+export default class Start extends wepy.page {
+  config = {
+    navigationBarTitleText: '发起挑战'
+  }
+  data = {
+    selRule: '',
+    rules: [],
+    minTime: dateFormat(new Date(), 'yyyy-MM-dd'),
+    start: '',
+    end: '',
+    content: ''
+  }
+  mixins = [Bindinput]
+  methods = {
+    async submit() {
+      const data = this.getData()
+      if (!data) return
+      const res = await pkStart(data)
+      const pkId = (res && res.datas && res.datas.pkId) || ''
+      if (pkId) wepy.navigateTo({ url: `/pages/PK/share?pkId=${pkId}` })
+    }
+  }
+  getData() {
+    const data = {
+      challengeRule: this.selRule,
+      challengeDeclaration: this.content,
+      startTime: this.start,
+      endTime: this.end
+    }
+    if (!this.start || !this.end) return alert('亲，请选择挑战起止时间')
+    if (this.end.replace(/[^\d]/g, '') - this.start.replace(/[^\d]/g, '') < 0) {
+      return alert('亲，结束日期应大于开始日期')
+    }
+    return data
+  }
+  async onShow() {
+    await this.$root.$parent.globalData.process
+    const res = await pkRule()
+    let rules = (res && res.datas && res.datas.appletPkRules) || []
+    if (rules.length) rules[0].checked = true
+    this.rules = rules
+    this.selRule = rules[0].value
+    this.$apply()
+  }
+}
+</script>
+
+<style lang="scss">
+.p-pkStart {
+  min-height: 100vh;
+  .line {
+    width: 40rpx;
+    height: 2rpx;
+  }
+  .date {
+    width: 220rpx;
+  }
+}
+</style>

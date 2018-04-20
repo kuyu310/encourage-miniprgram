@@ -1,0 +1,96 @@
+<template>
+  <view class="p-detail c-p">
+    <view class="top c-br c-bc-fff c-p c-ta-c">
+      <view class="c-p-r band c-mlr-auto c-mtb">
+        <text class="c-p-r c-zi-1 c-fw-b c-lh-56">悬赏令</text>
+        <image 
+          mode="aspectFill" 
+          class="c-p-abs c-w-100 c-h-100" 
+          src="/images/band.png" />        
+      </view>
+      <text class="c-d-b c-mtb">悬赏累计保费最高个人</text>
+      <text class="c-d-b c-mtb c-fs-60">￥10000.00</text>
+      <text class="c-d-b c-fs-24">活动时间：2018-01-01 至 2018-02-28</text>
+      <view class="divide c-mtb c-plr c-d-f c-ai-c">
+        <i class="line c-f-1"></i>
+        <i class="dot c-ml"></i>
+        <text class="c-d-b c-br c-c-fff c-fs-24 c-mlr">实时榜主</text>
+        <i class="dot c-mr"></i>
+        <i class="line c-f-1"></i>
+      </view>
+      <view class="c-mt-40 c-d-f c-flex-child-center">
+        <image mode="aspectFill" src="" class="avatar c-br-50 c-bc-eee" />
+        <view class="c-ml">
+          <text class="c-d-b c-ta-l c-mb-12">马飞飞</text>
+          <text class="c-fs-24">当月保费：30000.00</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="bottom c-p c-bc-fff c-mt c-br">
+      <text class="c-d-b c-ta-c c-mb">活动说明</text>
+      <text class="c-d-b">活动说明内容1</text>
+      <text class="c-d-b">活动说明内容2</text>
+      <text class="c-d-b">活动说明内容3</text>
+      <text class="c-d-b">活动说明内容4</text>
+      <text class="c-d-b">活动说明内容5</text>
+      <text class="c-d-b">活动说明内容6</text>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { wantedDetail } from '@/api'
+
+export default class Detail extends wepy.page {
+  config = {
+    navigationBarTitleText: '悬赏明细'
+  }
+  async onShow() {
+    const rewardId = '111'
+    const detail = await wantedDetail({ rewardId })
+    console.log(detail)
+  }
+}
+</script>
+
+<style lang="scss">
+.p-detail {
+  background: orange;
+  .top {
+    .band {
+      width: 467rpx;
+      height: 76rpx;
+      text {
+        color: rgb(174, 136, 68);
+      }
+    }
+    .divide {
+      .line {
+        display: block;
+        height: 1px;
+        background: #bbb;
+      }
+      .dot {
+        display: block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #bbb;      
+      }
+      text {
+        width: 120rpx;
+        padding: 5rpx;
+        background: linear-gradient(to bottom, rgb(255, 194, 108), rgb(253, 172, 64));
+        box-shadow: 0 5rpx 5rpx rgba(253, 172, 64, .5);
+      }
+    }
+    .avatar {
+      width: 120rpx;
+      height: 120rpx;
+    }
+  }
+  .bottom {}
+}
+</style>

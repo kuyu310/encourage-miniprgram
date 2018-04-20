@@ -1,0 +1,196 @@
+<template>
+  <view class="p-rank">
+    <pickSwiper :range="items" class="c-mtb"></pickSwiper>
+    <view 
+      class="c-mlr c-pb" 
+      wx:if="{{!showNewMonth}}">
+      <view 
+        class="c-plr c-ptb-32 c-bs c-flex c-bc-fff c-br c-p-r c-zi-3"
+        wx:if="{{list.length >= 1}}">
+        <view class="c-d-f c-ai-c">
+          <image 
+            src="/images/champion.png" 
+            class="champion" />
+          <image 
+            src="{{list[0].groupHeadImg}}" 
+            class="avatar1 c-br-50 c-bc-ddd c-mlr"/>
+          <text class="c-fs-40">{{list[0].groupName}}</text>
+        </view>
+        <view class="c-ta-r">
+          <text class="c-d-b c-mb">{{menuName}}</text>
+          <text>{{list[0][activedMenu === 0 || activedMenu === 2 ? 'orderAmount' : 'totalPremium']}}</text>
+        </view>
+      </view>
+
+      <view 
+        class="c-mlr-12 c-plr c-ptb-28 c-bs c-flex c-bc-fff c-br c-p-r c-zi-2"
+        wx:if="{{list.length >= 2}}">
+        <view class="c-d-f c-ai-c">
+          <image 
+            src="/images/runner-up.png" 
+            class="runner-up" />
+          <image 
+            src="{{list[1].groupHeadImg}}" 
+            class="avatar2 c-br-50 c-bc-ddd c-mlr"/>
+          <text class="c-fs-36">{{list[1].groupName}}</text>
+        </view>
+        <view class="c-ta-r">
+          <text class="c-d-b c-mb">{{menuName}}</text>
+          <text>{{list[1][activedMenu === 0 || activedMenu === 2 ? 'orderAmount' : 'totalPremium']}}</text>
+        </view>
+      </view>
+
+      <view 
+        class="c-mlr-24 c-plr c-ptb-24 c-flex c-bc-fff c-b-b c-p-r c-zi-1"
+        wx:if="{{list.length >= 3}}">
+        <view class="c-d-f c-ai-c">
+          <image 
+            src="/images/third-price.png" 
+            class="third-price" />
+          <image 
+            src="{{list[2].groupHeadImg}}" 
+            class="avatar3 c-br-50 c-bc-ddd c-mlr"/>
+          <text class="c-fs-32">{{list[2].groupName}}</text>
+        </view>
+        <view class="c-ta-c">
+          <text>{{list[2][activedMenu === 0 || activedMenu === 2 ? 'orderAmount' : 'totalPremium']}}</text>
+        </view>
+      </view>
+
+      <view 
+        class="c-mlr-24 c-bc-fff c-br c-pt"
+        wx:if="{{restList.length}}"
+        wx:for="{{restList}}"
+        wx:key="index">
+        <view class="c-flex c-pb c-plr">
+          <view class="c-d-f c-ai-c">
+            <text class="number c-ta-r c-fs-28">{{index + 4}}</text>
+            <image 
+              src="{{item.groupHeadImg}}" 
+              class="avatar c-br-50 c-bc-ddd c-mlr"/>
+            <text class="c-fs-28">{{item.groupName}}</text>
+          </view>
+          <view class="c-ta-c">
+            <text class="c-fs-28">{{item[activedMenu === 0 || activedMenu === 2 ? 'orderAmount' : 'totalPremium']}}</text>
+          </view>
+        </view>
+    
+      </view>
+
+    </view>
+    <view class="c-ta-c new-month" wx:if="{{showNewMonth}}">新的一月，新的开始</view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import pickSwiper from '@/components/pickSwiper'
+import { rankNowTotal, rankLastTotal, rankNowPremium, rankLastPremium } from '@/api'
+
+export default class Rank extends wepy.page {
+  config = {
+    navigationBarTitleText: '排行榜'
+  }
+  data = {
+    items: ['本月团队出单总量榜', '本月团队出单保费榜', '上月团队出单总量榜', '上月团队出单保费榜'],
+    activedMenu: 0,
+    list: []
+  }
+  components = { pickSwiper }
+  // wxml 事件处理函数对象，存放响应 wxml 中所捕获到的事件函数，如 bindtap, bindchange
+  methods = {}
+  // events 对象中所声明的函数为用于监听组件之间的通信与交互事件处理函数
+  events = {
+    pickSwiperUpdate(index) {
+      this.setRankByMenuIndex(index)
+    }
+  }
+  computed = {
+    restList() {
+      return this.list.length > 3 ? this.list.slice(3) : []
+    },
+    menuName() {
+      let item = this.items[this.activedMenu]
+      return item.slice(0, item.length - 1)
+    },
+    showNewMonth() {
+      const isFirstDate = new Date().getDate() === 1
+      return (this.activedMenu === 0 || this.activedMenu === 1) ? isFirstDate : false
+    }
+  }
+  setRankByMenuIndex(index) {
+    this.activedMenu = index
+    this.$apply()
+    if (this.showNewMonth) return (this.list = [])
+    this.getRankByMenuIndex(index).then(res => {
+      this.list = res
+      this.$apply()
+    })
+  }
+  async getRankByMenuIndex(index) {
+    let list = []
+    switch (index) {
+      case 0:
+        list = await rankNowTotal()
+        break
+      case 1:
+        list = await rankNowPremium()
+        break
+      case 2:
+        list = await rankLastTotal()
+        break
+      case 3:
+        list = await rankLastPremium()
+        break
+      default:
+        list = []
+        break
+    }
+    return (list && list.datas && list.datas.list) || []
+  }
+  async onShow() {
+    await this.$root.$parent.globalData.process
+    this.setRankByMenuIndex(0)
+  }
+}
+</script>
+
+<style lang="scss">
+.p-rank {
+  overflow-x: hidden;
+  .champion {
+    width: 70rpx;
+    height: 97rpx;
+  }
+  .runner-up {
+    width: 62rpx;
+    height: 86rpx;
+  }
+  .third-price {
+    width: 48rpx;
+    height: 67rpx;
+  }
+  .avatar1 {
+    width: 100rpx;
+    height: 100rpx;
+  }
+  .avatar2 {
+    width: 90rpx;
+    height: 90rpx;
+  }
+  .avatar3 {
+    width: 70rpx;
+    height: 70rpx;
+  }
+  .avatar {
+    width: 40rpx;
+    height: 40rpx;
+  }
+  .number {
+    width: 30rpx;
+  }
+  .new-month {
+    margin-top: 300rpx;
+  }
+}
+</style>

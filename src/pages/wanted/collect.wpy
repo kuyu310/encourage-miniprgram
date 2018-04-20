@@ -1,0 +1,51 @@
+<template>
+  <form @submit="submit">
+    <view class="c-mtb c-bc-fff c-p">
+      <text class="c-fw-b c-d-b c-mb">征集令活动说明：</text>
+      <!-- <text class="c-d-b">规则：</text> -->
+      <text>为增加车险售卖的趣味性，决定在全体经代人员中开展和车险售卖相关的 “悬赏令金点子”征集活动。征集内容不限，保费目标、出单速度、团队增员等等，只要符合主题，都可以向我们抛来。采纳之后，不仅能收到一份神秘大礼，你的金点子更会变成现实，让所有经代人员参与到其中参与悬赏竞争中来~还等什么，赶紧告诉我们你的金点子吧~</text>
+    </view>
+    <view class="c-bc-fff c-p">
+      <textarea 
+        placeholder="写出你的想法"
+        maxlength="500"
+        @input="cBindinput('message')" 
+        value="{{message}}">
+      </textarea>
+    </view>
+    <view class="c-mt c-p">
+      <button class="c-btn-blue" formType="submit">提交</button>
+    </view>
+  </form>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Bindinput from '@/mixins/bindinput'
+import { alert, alertAsync } from '@/shared/tip'
+import { wantedIdea } from '@/api'
+
+export default class Collect extends wepy.page {
+  config = {
+    navigationBarTitleText: '悬赏榜金点子征集令'
+  }
+  mixins = [Bindinput]
+  data = {
+    message: ''
+  }
+  methods = {
+    async submit(e) {
+      if (!this.message) return alert('亲，请写出你的想法')
+      const res = await wantedIdea({ content: this.message })
+      if (res === '') {
+        await alertAsync('提交成功，谢谢你的金点子！')
+        wepy.navigateBack()
+      }
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>

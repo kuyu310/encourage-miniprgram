@@ -1,0 +1,79 @@
+<template>
+  <view 
+    class="p-letterpk c-bc-fff" 
+    wx:if="{{status === 1 || status === 3}}">
+    <view class="c-p-40 c-d-f c-ai-c">
+      <image 
+        aspectFill 
+        src="{{detail.challengerWxHeadImg}}" 
+        class="avatar c-br-50 c-bc-eee" />
+      <view class="c-ml c-fs-40">
+        <text class="c-d-b c-mb">本人{{detail.challengerWxName}}</text>
+        <text>郑重向你发起挑战</text>
+      </view>
+    </view>
+
+    <view class="c-p-20 c-bc-lightWhite">挑战内容：{{detail.challengeRule}}</view>
+    <view class="c-p-20">起始时间：{{detail.startTime}}-{{detail.endTime}}</view>
+    <view class="c-p-20 c-bc-lightWhite">挑战宣言：{{detail.challengeDeclaration}}</view>
+
+    <view class="c-mt-40 c-plr" wx:if="{{status === 1}}">
+      <button class="c-btn-blue c-mb" @tap="accept">接受挑战</button>
+      <button class="c-btn-bluegray c-mb" @tap="refuse">先行回避</button>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { pkStatus, pkDetail, pkAccept } from '@/api'
+
+export default class Letter extends wepy.page {
+  config = {
+    navigationBarTitleText: '挑战书'
+  }
+  data = {
+    pkId: '',
+    status: 0, // 1-没有应战者 2-已有应战者 3-挑战本人查看
+    detail: {}
+  }
+  methods = {
+    async accept() {
+      await pkAccept({ pkId: this.pkId })
+      wepy.navigateTo({ url: `/pages/PK/detail?pkId=${this.pkId}` })
+    },
+    refuse() {
+      wepy.switchTab({ url: '/pages/rank/index' })
+    }
+  }
+  async onLoad(options) {
+    const { pkId } = options
+    this.pkId = pkId
+    await this.$root.$parent.globalData.process
+    const status = await pkStatus({ pkId })
+    this.status = (status && status.datas && status.datas.challengeStatus) || 0
+    this.$apply()
+    if (
+      this.status === 1 || // 没有应战者
+      this.status === 3 // 挑战本人查看
+    ) {
+      const detail = await pkDetail({ pkId })
+      this.detail = (detail && detail.datas && detail.datas.pkDetail) || {}
+      this.$apply()
+    }
+    if (this.status === 2) { // 已有应战者
+      wepy.redirectTo({ url: `/pages/PK/detail?pkId=${this.pkId}` })
+    }
+  }
+}
+</script>
+
+<style lang="scss">
+.p-letterpk {
+  min-height: 100vh;
+  .avatar {
+    width: 180rpx;
+    height: 180rpx;
+  }
+}
+</style>

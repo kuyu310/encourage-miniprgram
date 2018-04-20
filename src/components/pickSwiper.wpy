@@ -1,0 +1,132 @@
+<template>
+
+<movable-area
+  id="pickSwiperContainer"
+  class="cpt-ma c-w-100v"
+  @touchstart="touchstart"
+  @touchend="touchend"
+  wx:if="{{range.length}}">
+  <movable-view
+    id="pickSwiper"
+    class="mv c-h-100 c-w-a c-d-f"
+    direction="horizontal"
+    x="{{x}}"
+    damping="30"
+    out-of-bounds>
+    <view
+      wx:for="{{range}}"
+      wx:key="*this"
+      class="item c-p-r c-ta-c c-br c-o-h {{index === 0 ? 'c-mlr' : 'c-mr'}}">
+      <text class="c-p-r c-zi-1 c-c-fff c-fs-40">{{item}}</text>
+      <image 
+        aspectFill
+        src="/images/rank-bg.png" 
+        class="c-p-abs c-w-100 c-h-100" />
+    </view>
+  </movable-view>
+</movable-area>
+  
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class PickSwiper extends wepy.component {
+  data = {
+    x: 0,
+    current: 0, // 选中项
+    touchstartX: 0,
+    containerWidth: 0, // 容器宽度
+    itemWidthAll: 0, // 项目总宽度
+    itemWidthPer: 0, // 单个项目宽度
+    itemStep: 0 // 相邻项目间的间距
+  }
+  props = {
+    range: {
+      type: Array,
+      default: []
+    }
+  }
+  methods = {
+    touchstart(e) {
+      this.touchstartX = e.touches[0].pageX
+    },
+    touchend(e) {
+      const touchendX = e.changedTouches[0].pageX
+      const pos = touchendX - this.touchstartX
+      const temp = this.current - (pos > 0 ? 1 : -1)
+      const rangeLen = this.range.length
+      if (pos === 0) return
+
+      this.getSize().then(() => {
+        this.current = temp > rangeLen - 1
+          ? rangeLen - 1
+          : temp < 0 ? 0 : temp
+        this.x = this.getPosition(this.current)
+        this.$emit('pickSwiperUpdate', this.current)
+        this.$apply()
+      })
+    }
+  }
+  getPosition(index) {
+    const [container, all, per, step] = [
+      this.containerWidth,
+      this.itemWidthAll,
+      this.itemWidthPer,
+      this.itemStep
+    ]
+    if (index <= 0) {
+      return 0
+    } else if (index >= this.range.length) {
+      return -(all - per - step)
+    } else {
+      return -((per + step) * index + step - (container - per) / 2)
+    }
+  }
+  getSize() {
+    return new Promise(resolve => {
+      if (!this.containerWidth) {
+        Promise.all([
+          this._getSize('#pickSwiperContainer'),
+          this._getSize('#pickSwiper'),
+          this._getSize('#pickSwiper > .item')
+        ]).then(res => {
+          const [container, all, per] = [res[0][0].width, res[1][0].width, res[2][0].width]
+          this.containerWidth = container
+          this.itemWidthAll = all
+          this.itemWidthPer = per
+          this.itemStep = (all - per * this.range.length) / (this.range.length + 1)
+          resolve()
+        })
+      } else {
+        resolve()
+      }
+    })
+  }
+  _getSize(selector) {
+    return new Promise(resolve => {
+      wx.createSelectorQuery()
+        .select(selector)
+        .fields({ size: true })
+        .exec(resolve)
+    })
+  }
+}
+</script>
+
+<style lang="scss">
+$h: 200rpx;
+.cpt-ma {
+  height: $h;
+  .item {
+    width: 680rpx;
+    height: $h;
+    line-height: 200rpx;
+    box-shadow: 0 20rpx 25rpx rgba(73, 175, 243, .35)
+  }
+  .rank-bg {
+    width: 680rpx;
+    height: $h;    
+  }
+}
+</style>

@@ -1,0 +1,211 @@
+<template>
+  <view class="p-pk">
+    <view class="c-m head c-p-r c-ta-c">
+      <image aspectFill src="/images/pk-bg.png" class="bs c-w-100 c-h-100 c-br c-p-abs" />
+      <text class="c-p-r c-c-fff c-fs-40">PK榜</text>
+    </view>
+
+    <view class="c-bs c-br c-bc-fff c-p c-d-f c-ai-c c-jc-sb c-lh-60 c-mlr c-mb c-p-r c-ta-c c-fs-36">
+      <text 
+        class="menuitem {{selectedMenu === '0' ? 'c-c-pink' : ''}}"
+        @tap="selectMenu('0')">热门PK榜
+      </text>
+      <text class="c-c-ddd">|</text>
+      <text 
+        class="menuitem {{selectedMenu === '1' ? 'c-c-pink' : ''}}" 
+        @tap="selectMenu('1')">我的PK
+      </text>
+    </view>
+
+    <view 
+      class="c-mlr c-pb" 
+      wx:if="{{selectedMenu === '0'}}">
+      <view 
+        class="list c-bs c-br c-bc-fff c-plr c-d-f c-ai-c c-jc-sb {{index !== hotList.length - 1 ? 'c-mb' : ''}}"
+        wx:for="{{hotList}}"
+        wx:key="pkId"
+        @tap="toDetail({{ item.pkId }})">
+        <view class="user c-d-f c-ai-c">
+          <image 
+            aspectFill 
+            src="{{item.challengerWxHeadImg}}" 
+            class="avatar c-bc-eee c-br-50 no-shrink" />
+          <text class="c-ml">{{item.challengerWxName}}</text>
+        </view>
+        <view class="pk-wrap c-p-r c-ta-c c-o-h">
+          <image aspectFill src="/images/pk.png" class="pk c-p-r c-zi-1" />
+          <view class="line c-bc-ddd c-p-abs"></view>
+        </view>
+        <view class="user c-d-f c-ai-c c-jc-fe">
+          <text class="c-mr">{{item.answerWxName}}</text>
+          <image 
+            aspectFill 
+            src="{{item.answerWxHeadImg}}" 
+            class="avatar c-bc-eee c-br-50 no-shrink" />        
+        </view>
+      </view>
+
+    </view>
+
+    <view 
+      class="c-pb c-mlr c-br c-o-h c-bc-fff" 
+      wx:if="{{selectedMenu === '1'}}"
+      wx:for="{{myList}}"
+      wx:key="pkId"
+      @tap="toDetail({{ item.pkId }})">
+      <view class="c-b-b c-p-32 c-p-r">
+        <text class="c-d-b c-mb">PK人：{{item.opponent}}</text>
+        <text>PK内容：{{item.challengeRule}}</text>
+        <image 
+          aspectFill 
+          src="{{item.statusImg}}" 
+          class="status-img c-p-a" />
+      </view>      
+      
+    </view>
+
+    <view 
+      class="c-ta-c mt" 
+      wx:if="{{showEmpty}}">
+      PK擂台很空，快来发起PK吧
+    </view>
+
+    <image 
+      aspectFill 
+      src="/images/start-pk.png"
+      class="start-pk c-p-f c-zi-2"
+      @tap="pkStart"/>
+    
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { pkHotList, pkMyList } from '@/api'
+import { dateFormat } from '@/shared/util'
+
+export default class PK extends wepy.page {
+  config = {
+    navigationBarTitleText: 'PK榜'
+  }
+  data = {
+    selectedMenu: '0', // 0-热门PK榜 1-我的PK
+    hotList: [],
+    myList: []
+  }
+  computed = {
+    showEmpty() {
+      return this.selectedMenu === '0' && this.hotList.length === 0
+    }
+  }
+  methods = {
+    async selectMenu(menuId) {
+      this.selectedMenu = menuId
+      this.selectMenuById(menuId)
+    },
+    pkStart() {
+      wepy.navigateTo({ url: '/pages/PK/start' })
+    },
+    toDetail(pkId) {
+      wepy.navigateTo({ url: `/pages/PK/detail?pkId=${pkId}` })
+    }
+  }
+  getStatusImg(item) {
+    if (!item) return '/images/doing.png'
+    const now = dateFormat(new Date(), 'yyyyMMdd')
+    const start = item.startTime.replace(/[^\d]/ig, '')
+    const end = item.endTime.replace(/[^\d]/ig, '')
+    if (end - now < 0) { // PK结束
+      return item.pkStatus === '胜利'
+        ? '/images/win.png'
+        : item.pkStatus === '失败'
+          ? '/images/fail.png' : '/images/tie.png'
+    } else if (start - now > 0) { // PK还未开始
+      return '/images/todo.png'
+    }
+    return '/images/doing.png'
+  }
+  async selectMenuById(menuId) {
+    if (menuId === '0') {
+      const list = await pkHotList()
+      this.hotList = (list && list.datas && list.datas.myPkList) || []
+    } else {
+      const list = await pkMyList()
+      let myList = (list && list.datas && list.datas.myPkList) || []
+      this.myList = myList.map(i => {
+        return Object.assign(i, {
+          statusImg: this.getStatusImg(i)
+        })
+      })
+    }
+    this.$apply()
+  }
+  async onLoad() {
+    await this.$root.$parent.globalData.process
+    await this.selectMenuById('0')
+  }
+}
+</script>
+
+<style lang="scss">
+.p-pk {
+  .head {
+    height: 200rpx;
+    .bs {
+      box-shadow: 0 20rpx 25rpx rgba(197, 103, 178, .35)
+    }
+    text {
+      line-height: 200rpx;
+    }
+  }
+  .menuitem {
+    width: 45%;
+  }
+  .avatar {
+    width: 100rpx;
+    height: 100rpx;
+  }
+  .mt {
+    margin-top: 300rpx;
+  }
+  .list {
+    $width: 170rpx;
+    $height: 200rpx;
+    .user {
+      width: calc((100% - #{$width}) / 2)
+    }
+    .pk-wrap {
+      height: $height;
+      width: $width;
+      .pk {
+        width: 158rpx;
+        height: 158rpx;
+        margin-top: 30rpx;
+      }
+      .line {
+        width: 300rpx;
+        height: 2rpx;
+        transform: rotate(-50deg);
+        transform-origin: 0 50% 0;
+        top: $height;
+      }
+    }
+    .no-shrink {
+      flex-shrink: 0;
+    }  
+  }
+  .status-img {
+    width: 105rpx;
+    height: 105rpx;
+    right: 32rpx;
+    top: 32rpx;
+  }
+  .start-pk {
+    width: 171rpx;
+    height: 171rpx;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+</style>

@@ -1,0 +1,74 @@
+<template>
+  <view>
+    <web-view src="{{src}}" @message="message"></web-view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { WebviewPath } from '@/shared/const'
+import { loading, loaded, alert } from '@/shared/tip'
+import { getParam } from '@/shared/util'
+import { getUserInfo } from '@/api'
+
+const heartbeats = require('heartbeats')
+
+export default class Auth extends wepy.page {
+  data = {
+    src: ''
+  }
+  methods = {
+    message(e) {
+      console.log('message:::::', e)
+    }
+  }
+  onLoad(options) {
+    const { accountIndex } = options
+    const accounts = this.$root.$parent.globalData.accounts
+    const account = accounts[accountIndex]
+    const search = account.url.split('?')[1].split('#')[0]
+    const qs = getParam(search)
+    const { appid, redirect_uri, state } = qs || {}
+    this.src = `${WebviewPath}?appid=${appid}&redirect_uri=${encodeURIComponent(redirect_uri)}&state=${state}`
+    this.loop()
+  }
+  // 轮循获取用户信息
+  loop() {
+    const openId = this.$root.$parent.globalData.openId
+    const heart = heartbeats.createHeart(1 * 1000)
+    loading()
+    heart.createEvent(1, { countTo: 10 }, (count, last) => {
+      if (last) {
+        loaded()
+        return alert('亲，无权限查看小程序')
+      }
+
+      getUserInfo({ appletOpenId: openId }).then(res => {
+        if (res && res.datas) {
+          const { status, userId } = res.datas
+          if (status === 3 || status === 2) {
+            heart.kill()
+            loaded()
+          }
+          if (status === 3 && userId) {
+            // 保存用户
+            wepy.setStorageSync('userId', userId)
+            // 跳转至排行榜
+            wepy.switchTab({ url: '/pages/rank/index' })
+          }
+          if (status === 2) {
+            // 跳转至注册页面
+            wepy.redirectTo({ url: '/pages/unregistered?show=1' })
+          }
+        } else {
+          loaded()
+        }
+      })
+    })
+  }
+}
+</script>
+
+<style>
+
+</style>

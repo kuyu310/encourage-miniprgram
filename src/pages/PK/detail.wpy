@@ -1,0 +1,152 @@
+<template>
+  <view class="p-detailpk c-bc-fff c-pb">
+    <view class="c-p-40 c-d-f c-jc-sb c-ta-c">
+      <view>
+        <image 
+          aspectFill 
+          src="{{detail.challengerWxHeadImg}}" 
+          class="avatar c-bc-eee c-br-50" />
+        <text class="c-d-b c-mb-8">{{detail.challengerWxName}}</text>
+        <text class="c-d-b c-c-bbb c-mb-8">当前{{detail.challengeRule}}</text>
+        <text class="c-c-blue c-fs-48">{{detail.challengerPerf}}</text>
+      </view>
+      <image aspectFill src="/images/pk.png" class="pk c-mt" />
+      <view>
+        <image aspectFill src="{{detail.answerWxHeadImg}}" class="avatar c-bc-eee c-br-50" />
+        <text class="c-d-b c-mb-8">{{detail.answerWxName}}</text>
+        <text class="c-d-b c-c-bbb c-mb-8">当前{{detail.challengeRule}}</text>
+        <text class="c-c-blue c-fs-48">{{detail.answerPerf}}</text>
+      </view>
+    </view>
+
+    <view class="c-p-20 c-bc-lightWhite">挑战内容：{{detail.challengeRule}}</view>
+    <view class="c-p-20">起始时间：{{detail.startTime}}-{{detail.endTime}}</view>
+    <view class="c-p-20 c-bc-lightWhite">挑战宣言：{{detail.challengeDeclaration}}</view>
+
+    <button class="c-m c-btn-blue" @tap="tap">留言</button>
+
+    <button class="c-m c-btn-blue" @tap="toIndex">返回首页</button>
+
+    <view 
+      class="message c-mlr c-p c-bc-lightWhite c-br"
+      wx:if="{{messages.length}}">
+      <view 
+        wx:for="{{messages}}"
+        wx:key="index">{{item.name}}：{{item.message}}
+      </view>
+    </view>
+
+    <view 
+      class="textarea c-p-f c-p-8 c-bc-eee c-w-100v"
+      style="display: {{focus ? 'block' : 'none'}}">
+      <textarea 
+        class="c-b c-br c-bc-fff c-w-100"
+        auto-height="{{true}}" 
+        cursor-spacing="16"
+        focus="{{focus}}"
+        value="{{inputMsg}}"
+        @focus="focusHandler"
+        @input="cBindinput('inputMsg')"
+        @confirm="confirmInput"
+        @blur="blur">
+      </textarea>
+    </view>
+    
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Bindinput from '@/mixins/bindinput'
+import { pkDetail, leaveMessage } from '@/api'
+
+export default class Detail extends wepy.page {
+  config = {
+    navigationBarTitleText: '挑战书详情'
+  }
+  data = {
+    focus: false,
+    pdId: '',
+    inputMsg: '',
+    pkRule: [],
+    detail: {},
+    messages: [],
+    timeout: ''
+  }
+  mixins = [Bindinput]
+  methods = {
+    tap() {
+      this.inputMsg = ''
+      this.focus = true
+    },
+    toIndex() {
+      wepy.switchTab({ url: '/pages/rank/index' })
+    },
+    focusHandler() {
+      // BUGFix：微信中切换输入表情时会短暂失去焦点
+      if (this.timeout) clearTimeout(this.timeout)
+    },
+    blur() {
+      // BUGFix：微信中切换输入表情时会短暂失去焦点
+      this.timeout = setTimeout(() => {
+        this.focus = false
+        this.$apply()
+      }, 300)
+    },
+    async confirmInput() {
+      if (!this.inputMsg) return
+      const res = await leaveMessage({
+        content: this.inputMsg,
+        pkId: this.pkId
+      })
+      let item = (res && res.datas && res.datas.pkMessage) || null
+      if (item) {
+        this.messages.push({
+          name: item.spokesmanWxName,
+          message: item.message
+        })
+        this.$apply()
+      }
+    }
+  }
+  async onLoad(options) {
+    this.pkId = options.pkId || ''
+    if (!this.pkId.length) {
+      alert('亲，请传入pkId')
+    } else {
+      await this.$root.$parent.globalData.process
+      let detail = await pkDetail({ pkId: this.pkId })
+      this.detail = (detail && detail.datas && detail.datas.pkDetail) || {}
+      let message = (detail && detail.datas && detail.datas.messageList) || []
+      this.messages = message.map(i => {
+        return {
+          name: i.spokesmanWxName,
+          message: i.message
+        }
+      })
+      this.$apply()
+    }
+  }
+}
+</script>
+
+<style lang="scss">
+.p-detailpk {
+  min-height: 100vh;
+  .avatar {
+    width: 180rpx;
+    height: 180rpx;
+  }
+  .pk {
+    width: 158rpx;
+    height: 158rpx;
+  }
+  .message {
+    min-height: 300rpx;
+  }
+  .textarea {
+    left: 0;
+    bottom: 0;
+  }
+}
+</style>

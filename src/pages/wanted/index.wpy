@@ -1,0 +1,109 @@
+<template>
+  <view class="p-wanted c-mlr c-mt c-pb">    
+    <navigator
+      url="/pages/wanted/collect"
+      class="head c-w-100 c-br c-o-h c-p-r c-mb-28">
+      <image 
+        mode="aspectFill"
+        src="/images/wanted-bg.png" 
+        class="c-h-100 c-w-100 c-p-abs .c-zi--1" />
+      <view class="c-flex c-plr-60 c-h-100 c-w-100">
+        <view class="c-d-f">
+          <image 
+            src="/images/book.png" 
+            class="i-book c-mr" />
+          <view>
+            <view class="c-c-fff c-fw-b c-mb-12">悬赏榜金点子征集令</view>
+            <view class="c-c-fff c-fs-24">已征集 <text class="orange">{{amount + 50}}</text> 条</view>
+          </view>
+        </view>      
+        <image src="/images/go.png" class="i-go" />
+      </view>
+            
+    </navigator>
+
+    <navigator
+      url="/pages/wanted/detail?id=3"
+      class="c-w-100 c-br c-bs c-o-h c-mb c-p-r">
+      <image 
+        mode="aspectFill"
+        src="" 
+        class="c-bc-999 c-w-100 activity-img" />
+      <image 
+        mode="aspectFill" 
+        src="/images/wanted-doing.png" 
+        class="badge c-p-a" />
+      <view class="c-p">
+        <text class="c-d-b c-fw-b">悬赏累计保费最高个人</text>
+        <text class="c-fs-24">活动时间：2018-01-01至2018-02-28</text>
+      </view>
+    </navigator>
+
+    <navigator
+      url="/pages/wanted/detail?id=2"
+      class="c-w-100 c-br c-bs c-o-h c-p-r">
+      <image 
+        mode="aspectFill"
+        src=""
+        class="c-bc-999 c-w-100 activity-img" />
+      <image 
+        mode="aspectFill"
+        src="/images/wanted-done.png" 
+        class="badge c-p-a" />
+      <view class="c-p">
+        <text class="c-d-b c-fw-b">悬赏累计保费最高个人</text>
+        <text class="c-fs-24">活动时间：2018-01-01至2018-02-28</text>
+      </view>
+    </navigator>    
+
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { wantedIdeasAmount } from '@/api'
+
+export default class Wanted extends wepy.page {
+  config = {
+    navigationBarTitleText: '悬赏榜'
+  }
+  data = {
+    amount: 0
+  }
+  async onShow() {
+    await this.$root.$parent.globalData.process
+    const amount = await wantedIdeasAmount()
+    this.amount = (amount && amount.datas && amount.datas.count) || 0
+    this.$apply()
+  }
+}
+</script>
+
+<style lang="scss">
+.p-wanted {
+  .head {
+    height: 200rpx;
+    box-shadow: 0 20rpx 25rpx rgba(255, 166, 0, .4);
+    .i-book {
+      width: 88rpx;
+      height: 91rpx;
+    }
+    .i-go {
+      width: 140rpx;
+      height: 142rpx;
+    }
+    .orange {
+      color: rgb(255, 242, 87);
+    }
+  }
+  .activity-img {
+    height: 300rpx;
+  }
+  .badge {
+    width: 147rpx;
+    height: 148rpx;
+    right: 0;
+    top: 0;
+  }
+}
+</style>

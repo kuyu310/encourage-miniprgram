@@ -1,0 +1,21 @@
+<template>
+  <view></view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { alert } from '@/shared/tip'
+
+export default class Unregistered extends wepy.page {
+  onLoad(options) {
+    const { show } = options
+    if (show === '1') {
+      alert('你暂时还不是宝联灯团员，请搜索微信公众号“宝联灯”，成为宝联灯大家庭的一员吧。')
+    }
+  }
+}
+</script>
+
+<style>
+
+</style>

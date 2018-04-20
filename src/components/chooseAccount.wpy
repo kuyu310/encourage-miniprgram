@@ -1,0 +1,67 @@
+<template>
+  <view 
+    class="c-mask cpt-chooseAccount c-flex-child-center" 
+    animation="{{animationData}}"
+    wx:if="{{show}}">
+    <view class="content c-br c-p-32 c-ta-c">
+      <view class="c-fw-b">身份认证</view>
+      <view class="c-fs-24 c-mt-32">请选择你绑定的一个公众号进行认证</view>
+      <button class="c-btn-blue c-mt-32" @tap="choose(1)">宝联灯</button>
+      <button class="c-btn-blue c-mt-32" @tap="choose(2)">大熊保店</button>
+    </view>    
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import Animation from '@/mixins/animation'
+import { toLocation } from '@/api'
+
+export default class ChooseAccount extends wepy.component {
+  data = {
+    animationData: {}
+  }
+  props = {
+    show: {
+      type: Boolean,
+      default: false,
+      twoWay: true
+    }
+  }
+  mixins = [Animation]
+  watch = {
+    show(newValue) {
+      this.toggle(newValue)
+    }
+  }
+  methods = {
+    choose(type) {
+      this.show = false
+      const url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxd75ea6a80a149861&redirect_uri=http%3A%2F%2Fc.itest.zhongan.com%2Fopen%2Fapplet%2Fapplet_controller%2Fselect_service_info.json&response_type=code&scope=snsapi_base&state=o9Ch35C3DNSPnB17ShBF8sw6MHfQ001#wechat_redirect'
+      toLocation(url)
+
+      // this.$emit('accountUpdate', type)
+    }
+  }
+  toggle(isShow) {
+    // TODO:隐藏动画优化（由于wx:if未执行）
+    this.animationData = isShow ? this.cShowAnimationData : this.cHideAnimationData
+    this.$nextTick(() => this.$apply())
+  }
+  onLoad() {
+    this.toggle(this.show)
+  }
+}
+</script>
+
+<style lang="scss">
+.cpt-chooseAccount {
+  &.c-mask {
+    opacity: 0;
+  }
+  .content {
+    width: 80%;
+    background: #fff;
+  }
+}
+</style>

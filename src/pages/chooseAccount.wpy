@@ -1,0 +1,64 @@
+<template>
+  <view class="p-chooseAccount">
+    <view 
+      class="c-mask c-flex-child-center" 
+      animation="{{animationData}}"
+      wx:if="{{show}}">
+      <view class="content c-br c-p-32 c-ta-c">
+        <view class="c-fw-b">身份认证</view>
+        <view class="c-fs-24 c-mt-32">请选择你绑定的一个公众号进行认证</view>
+        <button 
+          wx:for="{{accounts}}" 
+          wx:key="item.describution" 
+          class="c-btn-blue c-mt-32" 
+          @tap="choose({{ index }})">{{ item.describution }}
+        </button>
+      </view>
+    </view>
+
+  </view>
+  
+</template>
+
+<script>
+import wepy from 'wepy'
+import Animation from '@/mixins/animation'
+
+export default class ChooseAccount extends wepy.page {
+  data = {
+    show: false,
+    accounts: [],
+    animationData: {}
+  }
+  mixins = [Animation]
+  methods = {
+    choose(index) {
+      wepy.redirectTo({ url: `/pages/auth?accountIndex=${index}` })
+    }
+  }
+  toggle(isShow) {
+    // TODO:隐藏动画优化（由于wx:if未执行）
+    this.animationData = isShow ? this.cShowAnimationData : this.cHideAnimationData
+    this.$nextTick(() => this.$apply())
+  }
+  onLoad(options) {
+    const { show } = options
+    const globalData = this.$root.$parent.globalData
+    this.show = show === '1'
+    this.accounts = globalData.accounts
+    this.toggle(this.show)
+  }
+}
+</script>
+
+<style lang="scss">
+.p-chooseAccount {
+  .c-mask {
+    opacity: 0;
+  }
+  .content {
+    width: 80%;
+    background: #fff;
+  }
+}
+</style>
