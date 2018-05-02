@@ -19,8 +19,8 @@ export const pkHotList = () => request({}, path + 'query_pk_hot_list.json')
 
 export const leaveMessage = data => request({ data }, path + 'leave_word.json')
 
-export const wantedList = () => request({}, path + 'reward_top_list.json')
-export const wantedDetail = data => request({ data }, path + 'reward_retail.json')
+export const wantedList = () => request({ hideLoading: true }, path + 'get_rewards_list.json')
+export const wantedDetail = data => request({ data }, path + 'get_reward_detail.json')
 export const wantedIdeasAmount = () => request({}, path + 'query_reward_ideas_amount.json')
 export const wantedIdea = data => request({ data }, path + 'add_recruit.json')
 

@@ -1,16 +1,16 @@
 <template>
-  <view class="p-detail c-p">
+  <view class="p-detail c-p c-flex-col c-h-100v">
     <view class="top c-br c-bc-fff c-p c-ta-c">
       <view class="c-p-r band c-mlr-auto c-mtb">
         <text class="c-p-r c-zi-1 c-fw-b c-lh-56">悬赏令</text>
         <image 
           mode="aspectFill" 
           class="c-p-abs c-w-100 c-h-100" 
-          src="/images/band.png" />        
+          src="/images/band.png" />    
       </view>
-      <text class="c-d-b c-mtb">悬赏累计保费最高个人</text>
-      <text class="c-d-b c-mtb c-fs-60">￥10000.00</text>
-      <text class="c-d-b c-fs-24">活动时间：2018-01-01 至 2018-02-28</text>
+      <text class="c-d-b c-mtb">{{ item.rewardTitle }}</text>
+      <text class="c-d-b c-mtb c-fs-60">￥{{ item.rewardPremium }}</text>
+      <text class="c-d-b c-fs-24">活动时间：{{ item.startTime }} 至 {{ item.endTime }}</text>
       <view class="divide c-mtb c-plr c-d-f c-ai-c">
         <i class="line c-f-1"></i>
         <i class="dot c-ml"></i>
@@ -19,22 +19,20 @@
         <i class="line c-f-1"></i>
       </view>
       <view class="c-mt-40 c-d-f c-flex-child-center">
-        <image mode="aspectFill" src="" class="avatar c-br-50 c-bc-eee" />
-        <view class="c-ml">
-          <text class="c-d-b c-ta-l c-mb-12">马飞飞</text>
-          <text class="c-fs-24">当月保费：30000.00</text>
+        <image
+          wx:if="{{ detail.bestPerformance && detail.bestPerformance > 0 }}"
+          mode="aspectFill" 
+          src="{{ detail.wxHeadImg }}" 
+          class="avatar c-br-50 c-bc-eee c-mr" />
+        <view>
+          <text class="c-d-b c-ta-l c-mb-12">{{ detail.bestPerformance && detail.bestPerformance > 0 && detail.wxName || '榜主虚位以待' }}</text>
+          <text class="c-fs-24" wx:if="{{ detail.bestPerformance }}">当月保费：{{ detail.bestPerformance }}</text>
         </view>
       </view>
     </view>
 
-    <view class="bottom c-p c-bc-fff c-mt c-br">
-      <text class="c-d-b c-ta-c c-mb">活动说明</text>
-      <text class="c-d-b">活动说明内容1</text>
-      <text class="c-d-b">活动说明内容2</text>
-      <text class="c-d-b">活动说明内容3</text>
-      <text class="c-d-b">活动说明内容4</text>
-      <text class="c-d-b">活动说明内容5</text>
-      <text class="c-d-b">活动说明内容6</text>
+    <view class="bottom c-p c-bc-fff c-mt c-br c-f-1">
+      <text class="c-d-b c-ta-l c-mb">{{ item.rewardDescription }}</text>
     </view>
   </view>
 </template>
@@ -47,10 +45,16 @@ export default class Detail extends wepy.page {
   config = {
     navigationBarTitleText: '悬赏明细'
   }
+  data = {
+    item: {},
+    detail: {}
+  }
   async onShow() {
-    const rewardId = '111'
-    const detail = await wantedDetail({ rewardId })
-    console.log(detail)
+    const item = wepy.getStorageSync('wanted:item')
+    this.item = item || {}
+    const detail = await wantedDetail({ rewardId: item.id || '' })
+    this.detail = (detail && detail.datas && detail.datas.detail) || {}
+    this.$apply()
   }
 }
 </script>
@@ -91,6 +95,11 @@ export default class Detail extends wepy.page {
       height: 120rpx;
     }
   }
-  .bottom {}
+  .bottom {
+    overflow-y: auto;
+    text {
+      line-height: 1.2;
+    }
+  }
 }
 </style>

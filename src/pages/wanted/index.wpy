@@ -22,56 +22,75 @@
             
     </navigator>
 
-    <navigator
-      url="/pages/wanted/detail?id=3"
-      class="c-w-100 c-br c-bs c-o-h c-mb c-p-r">
+    <view
+      wx:for="{{ formatList }}"
+      @tap="toDetail( {{ item }} )"
+      class="c-w-100 c-br c-bs c-o-h c-p-r {{ index < formatList.length - 1 ? 'c-mb' : '' }}">
       <image 
         mode="aspectFill"
-        src="" 
+        src="{{ item.poster }}" 
         class="c-bc-999 c-w-100 activity-img" />
       <image 
         mode="aspectFill" 
-        src="/images/wanted-doing.png" 
+        src="/images/{{ item.statusIcon }}" 
         class="badge c-p-a" />
       <view class="c-p">
-        <text class="c-d-b c-fw-b">悬赏累计保费最高个人</text>
-        <text class="c-fs-24">活动时间：2018-01-01至2018-02-28</text>
+        <text class="c-d-b c-fw-b">{{ item.rewardTitle }}</text>
+        <text class="c-fs-24">活动时间：{{ item.startTime }}至{{ item.endTime }}</text>
       </view>
-    </navigator>
-
-    <navigator
-      url="/pages/wanted/detail?id=2"
-      class="c-w-100 c-br c-bs c-o-h c-p-r">
-      <image 
-        mode="aspectFill"
-        src=""
-        class="c-bc-999 c-w-100 activity-img" />
-      <image 
-        mode="aspectFill"
-        src="/images/wanted-done.png" 
-        class="badge c-p-a" />
-      <view class="c-p">
-        <text class="c-d-b c-fw-b">悬赏累计保费最高个人</text>
-        <text class="c-fs-24">活动时间：2018-01-01至2018-02-28</text>
-      </view>
-    </navigator>    
+    </view>
 
   </view>
 </template>
 
 <script>
 import wepy from 'wepy'
-import { wantedIdeasAmount } from '@/api'
+import { wantedIdeasAmount, wantedList } from '@/api'
+import { ApiOrigin } from '@/shared/const'
+import { dateFormat } from '@/shared/util'
 
 export default class Wanted extends wepy.page {
   config = {
     navigationBarTitleText: '悬赏榜'
   }
   data = {
-    amount: 0
+    amount: 0,
+    list: []
+  }
+  computed = {
+    formatList() {
+      return this.list.map(i => {
+        const status = this.getStatus(i)
+        return Object.assign(i, {
+          status: status,
+          statusIcon: status === 0 ? 'wanted-todo.png' : status === 1 ? 'wanted-doing.png' : 'wanted-done.png',
+          poster: ApiOrigin + i.rewardPicture
+        })
+      })
+    }
+  }
+  methods = {
+    toDetail(item) {
+      wepy.setStorageSync('wanted:item', item)
+      wepy.navigateTo({ url: '/pages/wanted/detail' })
+    }
+  }
+  /**
+   * 获取悬赏活动状态
+   * @return 0-悬赏未开始 1-悬赏进行中 2-悬赏已结束
+   */
+  getStatus({ startTime: start, endTime: end } = {}) {
+    const now = +new Date(dateFormat(new Date(), 'yyyy-MM-dd'))
+    let startTime = +new Date(start)
+    let endTime = +new Date(end)
+    return startTime - now > 0 ? 0 : now - endTime > 0 ? 2 : 1
   }
   async onShow() {
     await this.$root.$parent.globalData.process
+    if (!this.list.length) {
+      const list = await wantedList()
+      this.list = (list && list.datas && list.datas.rewardsList) || []
+    }
     const amount = await wantedIdeasAmount()
     this.amount = (amount && amount.datas && amount.datas.count) || 0
     this.$apply()
