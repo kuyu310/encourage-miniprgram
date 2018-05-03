@@ -142,7 +142,7 @@ export default class PK extends wepy.page {
   }
   async onShow() {
     await this.$root.$parent.globalData.process
-    await this.selectMenuById('0')
+    await this.selectMenuById(this.selectedMenu)
   }
 }
 </script>

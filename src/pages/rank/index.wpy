@@ -150,7 +150,7 @@ export default class Rank extends wepy.page {
   }
   async onShow() {
     await this.$root.$parent.globalData.process
-    this.setRankByMenuIndex(0)
+    this.setRankByMenuIndex(this.activedMenu)
   }
 }
 </script>
